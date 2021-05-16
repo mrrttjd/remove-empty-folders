@@ -20,13 +20,21 @@ func main() {
 	// find directories and delete if they are smaller than minSize
 	for _, f := range files {
 		if f.IsDir() {
-			a, _ := DirSize(f.Name())
-			fmt.Println(f.Name())
-			fmt.Println(a)
+			// get directory size
+			a, err := DirSize(f.Name())
+			if err != nil {
+				log.Fatal(err)
+			}
 
+			fmt.Println(f.Name(), "\t", a)
+
+			// destroy folders beneath threshold
 			if a <= threshold {
 				fmt.Println("Deleting ", f.Name())
-				os.RemoveAll(f.Name())
+				err := os.RemoveAll(f.Name())
+				if err != nil {
+					log.Fatal(err)
+				}
 			}
 		}
 	}
