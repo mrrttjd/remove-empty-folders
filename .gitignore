@@ -1,2 +1,6 @@
 
 *.exe
+
+pkg/
+build/
+bin/
