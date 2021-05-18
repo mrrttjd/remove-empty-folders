@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -8,8 +9,10 @@ import (
 )
 
 func main() {
-	// delete folders beneath this:
-	var threshold int64 = 0
+	// noConfirm := flag.Bool("no-confim", false ,"do not ask for deletion confirmation")
+	threshold := flag.Int64("threshold", 0, "delete folders with size lower than this")
+	flag.Parse()
+
 
 	// read directory
 	files, err := os.ReadDir(".")
@@ -17,6 +20,7 @@ func main() {
 		log.Fatal(err)
 	}
 
+	var deletionlist []string
 	// find directories and delete if they are smaller than minSize
 	for _, f := range files {
 		if f.IsDir() {
@@ -29,16 +33,16 @@ func main() {
 			fmt.Println(f.Name(), "\t", a)
 
 			// destroy folders beneath threshold
-			if a <= threshold {
-				fmt.Println("Deleting ", f.Name())
-				err := os.RemoveAll(f.Name())
-				if err != nil {
-					log.Fatal(err)
-				}
+			if a <= *threshold {
+				deletionlist = append(deletionlist, f.Name())
+				DeleteFolders(deletionlist)
 			}
 		}
 	}
+
+
 }
+
 
 func DirSize(path string) (int64, error) {
 	var size int64
@@ -52,4 +56,15 @@ func DirSize(path string) (int64, error) {
 		return err
 	})
 	return size, err
+}
+
+
+func DeleteFolders (paths []string) {
+	for _, f := range paths {
+		fmt.Println("Deleting:\t", f)
+		err := os.RemoveAll(f)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 }
