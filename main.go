@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	// noConfirm := flag.Bool("no-confim", false ,"do not ask for deletion confirmation")
+	noConfirm := flag.Bool("no-confim", false ,"do not ask for deletion confirmation")
 	threshold := flag.Int64("threshold", 0, "delete folders with size lower than this")
 	flag.Parse()
 
@@ -30,17 +30,28 @@ func main() {
 				log.Fatal(err)
 			}
 
-			fmt.Println(f.Name(), "\t", a)
-
-			// destroy folders beneath threshold
+			
+			// create slice of folders to delete
 			if a <= *threshold {
+				fmt.Println(f.Name(), "\t", a)
 				deletionlist = append(deletionlist, f.Name())
-				DeleteFolders(deletionlist)
 			}
 		}
 	}
 
-
+	if *noConfirm {
+		DeleteFolders(deletionlist)
+	}else if (len(deletionlist) != 0) {
+		fmt.Println("Confirm deletion of the above directories (Y/n): ")
+		var second string
+		fmt.Scanln(&second)
+		if second != "n" {
+			DeleteFolders(deletionlist)		
+		}
+		
+	}else {
+		fmt.Println("no small folders found")
+	}
 }
 
 
@@ -59,7 +70,7 @@ func DirSize(path string) (int64, error) {
 }
 
 
-func DeleteFolders (paths []string) {
+func DeleteFolders(paths []string) {
 	for _, f := range paths {
 		fmt.Println("Deleting:\t", f)
 		err := os.RemoveAll(f)
