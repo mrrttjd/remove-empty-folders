@@ -1,19 +1,24 @@
 package main
 
 import (
-	"flag"
 	"fmt"
+	"github.com/jessevdk/go-flags"
 	"log"
 	"os"
 	"path/filepath"
 )
 
+var opts struct {
+	Verbose bool `short:"v" long:"verbose" description:"Show verbose debug information"`
+	NoConfirm bool `short:"N" long:"no-confirm" description:"Do not ask for deletion confirmation"`
+	Threshold int64 `short:"T" long:"threshold" description:"Delete folders lower than a threshold in bytes"`
+}
+
+
 func main() {
-	noConfirm := flag.Bool("no-confim", false ,"do not ask for deletion confirmation")
-	threshold := flag.Int64("threshold", 0, "delete folders with size lower than this")
-	flag.Parse()
+	flags.Parse(&opts)
 
-
+	
 	// read directory
 	files, err := os.ReadDir(".")
 	if err != nil {
@@ -32,16 +37,16 @@ func main() {
 
 			
 			// create slice of folders to delete
-			if a <= *threshold {
+			if a <= opts.Threshold {
 				fmt.Println(f.Name(), "\t", a)
 				deletionlist = append(deletionlist, f.Name())
 			}
 		}
 	}
 
-	if *noConfirm {
+	if opts.NoConfirm {
 		DeleteFolders(deletionlist)
-	}else if (len(deletionlist) != 0) {
+	} else if (len(deletionlist) != 0) {
 		fmt.Println("Confirm deletion of the above directories (Y/n): ")
 		var second string
 		fmt.Scanln(&second)
@@ -49,8 +54,8 @@ func main() {
 			DeleteFolders(deletionlist)		
 		}
 		
-	}else {
-		fmt.Println("no small folders found")
+	} else {
+		fmt.Println("No small folders found")
 	}
 }
 
