@@ -1,18 +1,23 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
+
+	"github.com/jessevdk/go-flags"
 )
 
-func main() {
-	noConfirm := flag.Bool("no-confim", false ,"do not ask for deletion confirmation")
-	threshold := flag.Int64("threshold", 0, "delete folders with size lower than this")
-	flag.Parse()
+var opts struct {
+	Verbose   bool  `short:"v" long:"verbose" description:"Show verbose debug information"`
+	NoConfirm bool  `short:"N" long:"no-confirm" description:"Do not ask for deletion confirmation"`
+	Threshold int64 `short:"T" long:"threshold" description:"Delete folders lower than a threshold in bytes"`
+}
 
+func main() {
+	flags.Parse(&opts)
 
 	// read directory
 	files, err := os.ReadDir(".")
@@ -30,30 +35,27 @@ func main() {
 				log.Fatal(err)
 			}
 
-			
 			// create slice of folders to delete
-			if a <= *threshold {
+			if a <= opts.Threshold {
 				fmt.Println(f.Name(), "\t", a)
 				deletionlist = append(deletionlist, f.Name())
 			}
 		}
 	}
 
-	if *noConfirm {
+	if opts.NoConfirm {
 		DeleteFolders(deletionlist)
-	}else if (len(deletionlist) != 0) {
-		fmt.Println("Confirm deletion of the above directories (Y/n): ")
-		var second string
-		fmt.Scanln(&second)
-		if second != "n" {
-			DeleteFolders(deletionlist)		
+	} else if len(deletionlist) != 0 {
+		fmt.Println("Confirm deletion of the above directories (y/N): ")
+		var userinput string
+		fmt.Scanln(&userinput)
+		if strings.ToLower(userinput) == "y" || strings.ToLower(userinput) == "yes"{
+			DeleteFolders(deletionlist)
 		}
-		
-	}else {
-		fmt.Println("no small folders found")
+	} else {
+		fmt.Println("No small folders found")
 	}
 }
-
 
 func DirSize(path string) (int64, error) {
 	var size int64
@@ -68,7 +70,6 @@ func DirSize(path string) (int64, error) {
 	})
 	return size, err
 }
-
 
 func DeleteFolders(paths []string) {
 	for _, f := range paths {
